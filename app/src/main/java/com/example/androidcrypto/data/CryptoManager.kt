@@ -1,9 +1,7 @@
 package com.example.androidcrypto.data
 
-import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import androidx.annotation.RequiresApi
 import java.io.InputStream
 import java.io.OutputStream
 import java.security.KeyStore
@@ -12,7 +10,6 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
-@RequiresApi(Build.VERSION_CODES.M)
 class CryptoManager {
 
     companion object {
@@ -25,10 +22,6 @@ class CryptoManager {
 
     private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
         load(null)
-    }
-
-    private val encryptCipher = Cipher.getInstance(TRANSFORMATION).apply {
-        init(Cipher.ENCRYPT_MODE, getKey())
     }
 
     private fun getDecryptCipherForIv(iv: ByteArray): Cipher {
@@ -59,10 +52,13 @@ class CryptoManager {
     }
 
     fun encrypt(bytes: ByteArray, outputStream: OutputStream): ByteArray {
-        val encryptedBytes = encryptCipher.doFinal(bytes)
+        val cipher = Cipher.getInstance(TRANSFORMATION).apply {
+            init(Cipher.ENCRYPT_MODE, getKey())
+        }
+        val encryptedBytes = cipher.doFinal(bytes)
         outputStream.use {
-            it.write(encryptCipher.iv.size)
-            it.write(encryptCipher.iv)
+            it.write(cipher.iv.size)
+            it.write(cipher.iv)
             it.write(encryptedBytes.size)
             it.write(encryptedBytes)
         }
